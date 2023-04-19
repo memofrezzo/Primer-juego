@@ -26,6 +26,7 @@ export default class HelloWorldScene extends Phaser.Scene {
   create() {
     // create game objects
     this.add.image(400, 300, "sky");
+    c;
 
     const particles = this.add.particles("red");
 
