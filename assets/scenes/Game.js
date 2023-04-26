@@ -1,16 +1,27 @@
+import{SHAPES} from "../../utils.js";
+const{TRIANGLE, SQUARE, DIAMOND}=SHAPES;
+
 export default class Game extends Phaser.Scene {
+  score;
   constructor() {
     super("game");
   }
 
-  Init() {}
+  init() {
+    this.shapesRecolected ={
+      [TRIANGLE]: {count:0, score:10},
+      [SQUARE]: {count:0, score:20},
+      [DIAMOND]: {count:0, score:30}
+    }
+    console.log(this.shapesRecolected)
+  }
   preload() {
     this.load.image("sky", "./assets/images/sky.png");
     this.load.image("ground", "./assets/images/platform.png");
     this.load.image("ninja", "./assets/images/ninja.png");
-    this.load.image("square", "./assets/images/square.png");
-    this.load.image("diamond", "./assets/images/diamond.png");
-    this.load.image("triangle", "./assets/images/triangle.png");
+    this.load.image(SQUARE, "./assets/images/square.png");
+    this.load.image(DIAMOND, "./assets/images/diamond.png");
+    this.load.image(TRIANGLE, "./assets/images/triangle.png");
     this.load.image("meme", "./assets/images/meme.png");
   }
   create() {
@@ -46,33 +57,59 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.player, platforms);
     this.physics.add.collider(this.player, this.shapesGroup);
     this.physics.add.collider(platforms, this.shapesGroup);
+  // add overlap between player and shapes
+this.physics.add.overlap(
+  this.player,
+  this.shapesGroup,
+  this.collectShape,//funcion que llama cuando el player toca el shape
+  null,//dejar fijo por ahora
+  this//dejar fijo por ahora
+)
+this.score = 0;
+this.scoreText = this.add.text(20 , 20, "Score: " + this.score, {
+  fontSize: "35px",
+  fontStyle: "bold",
+  fill: "#FFFFFF",
+});
+
   }
+
+
   update() {
     if (this.cursors.left.isDown) {
-  this.player.setVelocityX(-250); 
-} else  {
-  if (this.cursors.right.isDown) {
-  this.player.setVelocityX(250);
-} else{ 
-  this.player.setVelocityX(0);
-}
-
-}
-if (this.cursors.up.isDown && this.player.body.touching.down){
-  this.player.setVelocityY(-330)
-}
-}
-
+      this.player.setVelocityX(-250); 
+    } else  {
+      if (this.cursors.right.isDown) {
+      this.player.setVelocityX(250);
+    } else{ 
+      this.player.setVelocityX(0);
+    }
+  }
+    if (this.cursors.up.isDown && this.player.body.touching.down){
+      this.player.setVelocityY(-330)
+    }
+  }
 
 
 
-addShape (){
+
+ addShape (){
   // get random shape
-  const randomShape = Phaser.Math.RND.pick (["diamond", "square", "triangle"]);
+  const randomShape = Phaser.Math.RND.pick ([DIAMOND, SQUARE,TRIANGLE]);
   //get  random position  x
   const randomX = Phaser.Math.RND.between(0,800);
   // get random  to  screen
-  this.shapesGroup.create(randomX, 0, randomShape);
+  this.shapesGroup.create(randomX, 0, randomShape)
   console.log("shape is added", randomX, randomShape);
+  }
+  collectShape(player, shape){
+    //remove shape from screen
+    shape.disableBody(true, true);
+  
+    const shapeName = shape.texture.key;
+    this.shapesRecolected[shapeName].count++;
+
+    this.score += this.shapesRecolected[shapeName].score;
+  this.scoreText.setText(`Score: ${this.score.toString()}`);
   }
 }
