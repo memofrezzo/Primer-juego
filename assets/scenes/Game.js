@@ -1,38 +1,36 @@
 import{SHAPES} from "../../utils.js";
-const{TRIANGLE, SQUARE, DIAMOND}=SHAPES;
+const{TRIANGLE, SQUARE, DIAMOND,BOMBB}=SHAPES;//agregar el bomb
 
 export default class Game extends Phaser.Scene {
   score;
   constructor() {
-    super("game");
+    super("Game");
   }
 
   init() {
+    this.gameOver = false
+    this.isWin = false
+   
     this.shapesRecolected ={
       [TRIANGLE]: {count:0, score:10},
       [SQUARE]: {count:0, score:20},
-      [DIAMOND]: {count:0, score:30}
+      [DIAMOND]: {count:0, score:30},
+      [BOMBB]: {count:0, score:-30}
     }
     console.log(this.shapesRecolected)
   }
-  preload() {
-    this.load.image("sky", "./assets/images/sky.png");
-    this.load.image("ground", "./assets/images/platform.png");
-    this.load.image("ninja", "./assets/images/ninja.png");
-    this.load.image(SQUARE, "./assets/images/square.png");
-    this.load.image(DIAMOND, "./assets/images/diamond.png");
-    this.load.image(TRIANGLE, "./assets/images/triangle.png");
-    this.load.image("meme", "./assets/images/meme.png");
-  }
+  
   create() {
     // add background
     this.add.image(400, 300, "sky").setScale(0.555);
     //
     let platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, "ground").setScale(2).refreshBody();
-    // add meme
+  
+    
+    platforms.create(500, 358, "ground").setScale(0.55).refreshBody();
    
-    this.add.image(700, 90,"meme").setScale(0.25);
+    
     
 
     // add sprite player
@@ -40,9 +38,10 @@ export default class Game extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     // add shapes  groeup
     this.shapesGroup = this.physics.add.group();
-    this.shapesGroup.create(100, 0, "diamond");
-    this.shapesGroup.create(200, 0, "triangle");
-    this.shapesGroup.create(300, 0, "square");
+    //this.shapesGroup.create(100, 0, "diamond");
+    //this.shapesGroup.create(200, 0, "triangle");
+    //this.shapesGroup.create(300, 0, "square");
+
     this.addShape();
     //create event to add shapes
     this.time.addEvent({
@@ -51,6 +50,13 @@ export default class Game extends Phaser.Scene {
       callbackScope: this,
       loop: true,
     });
+    this.time.addEvent({
+      delay: 1000,
+      callback: this.onSecond,
+      callbackScope: this,
+      loop: true
+    })
+
     // create cursor
     this.cursors= this.input.keyboard.createCursorKeys();
     //add collierd between player and plataform
@@ -70,12 +76,24 @@ this.scoreText = this.add.text(20 , 20, "Score: " + this.score, {
   fontSize: "35px",
   fontStyle: "bold",
   fill: "#FFFFFF",
+}); 
+this.timer = 5;
+this.timeText = this.add.text(750 , 20, this.timer, {
+  fontSize: "35px",
+  fontStyle: "bold",
+  fill: "#FFFFFF",
 });
 
+
+}
+
+ update() {
+  if (this.score > 200){
+    this.scene.start("Win");
   }
-
-
-  update() {
+  if (this.gameOver){
+    this.scene.start("GameOver");
+  }
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-250); 
     } else  {
@@ -88,20 +106,24 @@ this.scoreText = this.add.text(20 , 20, "Score: " + this.score, {
     if (this.cursors.up.isDown && this.player.body.touching.down){
       this.player.setVelocityY(-330)
     }
+    
   }
+
 
 
 
 
  addShape (){
   // get random shape
-  const randomShape = Phaser.Math.RND.pick ([DIAMOND, SQUARE,TRIANGLE]);
+  const randomShape = Phaser.Math.RND.pick ([DIAMOND, SQUARE,TRIANGLE,BOMBB]);
   //get  random position  x
   const randomX = Phaser.Math.RND.between(0,800);
   // get random  to  screen
-  this.shapesGroup.create(randomX, 0, randomShape)
-  console.log("shape is added", randomX, randomShape);
-  }
+  this.shapesGroup.create(randomX, 0, randomShape).setCircle(25, 7, 7) .setBounce(0.75,0.50);
+};
+  
+ 
+  
   collectShape(player, shape){
     //remove shape from screen
     shape.disableBody(true, true);
@@ -112,4 +134,11 @@ this.scoreText = this.add.text(20 , 20, "Score: " + this.score, {
     this.score += this.shapesRecolected[shapeName].score;
   this.scoreText.setText(`Score: ${this.score.toString()}`);
   }
+onSecond (){
+  this.timer--;
+  this.timeText.setText(this.timer);
+  if ( this.timer <=0){
+    this.gameOver = true;
+  }
+}
 }
