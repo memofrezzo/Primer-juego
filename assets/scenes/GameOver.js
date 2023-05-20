@@ -3,6 +3,7 @@ export default class GameOver extends Phaser.Scene {
       super("GameOver");
     }
     create (){
-        this.add.image(650, 400,"meme").setScale(0.25);
+        this.add.image(400, 300,"restart").setScale(1).setInteractive()
+        .on('pointerdown', ()=> this.scene.start('Game'));
     }
 }
